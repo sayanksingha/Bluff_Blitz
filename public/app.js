@@ -1,6 +1,14 @@
 const app = document.querySelector('#app');
-let ws, state, session = JSON.parse(localStorage.getItem('bluff-session') || 'null'), selected;
-function connect(){ ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/api/ws`); ws.onopen=()=>{ if(session) send({type:'RECONNECT',...session}); render(); }; ws.onmessage=e=>{const m=JSON.parse(e.data); if(m.type==='STATE'){state=m; render()} if(m.type==='JOINED'){session={code:m.code,playerId:m.playerId};localStorage.setItem('bluff-session',JSON.stringify(session));} if(m.type==='SESSION_EXPIRED'){session=null;state=null;localStorage.removeItem('bluff-session');render()} if(m.type==='ERROR') toast(m.message)}; ws.onclose=()=>setTimeout(connect,1500) }
+let ws, state, session = JSON.parse(sessionStorage.getItem('bluff-session') || 'null'), selected;
+const navigationType = performance.getEntriesByType('navigation')[0]?.type || 'navigate';
+const tabWasAlreadyInitialized = sessionStorage.getItem('bluff-tab-initialized') === '1';
+
+if (session && tabWasAlreadyInitialized && navigationType !== 'reload') {
+  session = null;
+  sessionStorage.removeItem('bluff-session');
+}
+sessionStorage.setItem('bluff-tab-initialized', '1');
+function connect(){ ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/api/ws`); ws.onopen=()=>{ if(session) send({type:'RECONNECT',...session}); render(); }; ws.onmessage=e=>{const m=JSON.parse(e.data); if(m.type==='STATE'){state=m; render()} if(m.type==='JOINED'){session={code:m.code,playerId:m.playerId};sessionStorage.setItem('bluff-session',JSON.stringify(session));} if(m.type==='SESSION_EXPIRED'){session=null;state=null;sessionStorage.removeItem('bluff-session');render()} if(m.type==='ERROR') toast(m.message)}; ws.onclose=()=>setTimeout(connect,1500) }
 function send(m){ if(ws?.readyState===1) ws.send(JSON.stringify({...m,...(session||{})})) }
 function toast(t){ document.querySelector('.toast')?.remove(); document.body.insertAdjacentHTML('beforeend',`<div class="toast">${t}</div>`); setTimeout(()=>document.querySelector('.toast')?.remove(),3000) }
 function esc(v=''){return String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
