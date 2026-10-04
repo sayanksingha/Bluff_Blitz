@@ -10,7 +10,7 @@ const RESULTS_MS = 8_000;
 
 const rooms = new Map();
 const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const root = process.cwd();
+const root = resolve(process.cwd(), "public");
 
 const code = () =>
   Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
@@ -220,10 +220,6 @@ function contentType(pathname) {
   if (pathname.endsWith(".html")) return "text/html; charset=utf-8";
   if (pathname.endsWith(".js")) return "text/javascript; charset=utf-8";
   if (pathname.endsWith(".css")) return "text/css; charset=utf-8";
-  if (pathname.endsWith(".json")) return "application/json; charset=utf-8";
-  if (pathname.endsWith(".svg")) return "image/svg+xml";
-  if (pathname.endsWith(".png")) return "image/png";
-  if (pathname.endsWith(".jpg") || pathname.endsWith(".jpeg")) return "image/jpeg";
   return "text/plain; charset=utf-8";
 }
 
